@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var isUndoAlertPresented: Bool = false
     @State private var isResetAlertPresented: Bool = false
     
+    var undoManager = UndoManager()
     
     var body: some View {
         NavigationStack {
@@ -59,9 +60,12 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $isAddMovieViewPresented) {
-                AddMovieView(isPresented: $isAddMovieViewPresented)
+                AddMovieView(isPresented: $isAddMovieViewPresented, undoManager: undoManager)
                     .environment(\.managedObjectContext, managedObjectContext)
             }
+        }
+        .onAppear {
+            managedObjectContext.undoManager = undoManager
         }
         .onShakeGesture {
             isUndoAlertPresented.toggle()
@@ -86,25 +90,27 @@ struct ContentView: View {
 
 // MARK: - Core Data CRUD
 extension ContentView {
-    private func addMovie(title: String, genre: String, releaseDate: Date) {
-        let movie = Movie(context: managedObjectContext)
-        
-        movie.title = title
-        movie.genre = genre
-        movie.releaseDate = releaseDate
-        
-        saveContext()
-    }
-    
     private func deleteMovie(at offsets: IndexSet) {
         offsets.forEach { index in
             let movie = movies[index]
             managedObjectContext.delete(movie)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-                saveContext()
+        }
+        // 삭제시 삭제된 데이터를 undoManager에 등록해놓는다.
+        // 되돌릴시 데이터가 복구된다.
+        undoManager.registerUndo(withTarget: managedObjectContext) { context in
+            if context.deletedObjects.count != 0 {
+                let changedValue = context.deletedObjects
+                
+                if changedValue.count == 1 {
+                    context.insert(changedValue.first!)
+                } else {
+                    for movie in changedValue {
+                        context.insert(movie)
+                    }
+                }
             }
         }
+        saveContext()
     }
     
     private func saveContext() {
@@ -116,44 +122,32 @@ extension ContentView {
     }
     
     private func undoContext() {
-        let undoManager = UndoManager()
-        managedObjectContext.undoManager = undoManager
+        managedObjectContext.undo()
+        saveContext()
+    }
+    
+    private func resetContext() {
+        for movie in movies {
+            managedObjectContext.delete(movie)
+        }
         
-        // 삭제되었을시 다시 insert, insert 된 것을 되돌려 삭제하기
         undoManager.registerUndo(withTarget: managedObjectContext) { context in
-            if let changedValue = context.insertedObjects.first {
-                context.delete(changedValue)
-            }
-            
-            if !context.deletedObjects.isEmpty {
-                var deletedMovies = context.deletedObjects
+            if context.deletedObjects.count != 0 {
+                let changedValue = context.deletedObjects
                 
-                if deletedMovies.count == 1 {
-                    context.insert(context.deletedObjects.first!)
+                if changedValue.count == 1 {
+                    context.insert(changedValue.first!)
                 } else {
-                    for movie in deletedMovies {
+                    for movie in changedValue {
                         context.insert(movie)
                     }
                 }
             }
         }
-        
-        managedObjectContext.undo()
-        
         saveContext()
-    }
-    
-    private func resetContext() {
-        saveContext()
-        
-        for movie in movies {
-            managedObjectContext.delete(movie)
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-            saveContext()
-            print("Hello~")
-        }
-        
     }
 }
+
+
+
+

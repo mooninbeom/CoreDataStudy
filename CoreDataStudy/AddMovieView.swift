@@ -17,6 +17,8 @@ struct AddMovieView: View {
     
     @FocusState private var focusField: Field?
     
+    var undoManager: UndoManager
+    
     
     var body: some View {
         NavigationView {
@@ -95,13 +97,22 @@ struct AddMovieView: View {
         movie.genre = genre
         movie.releaseDate = releaseDate
         
-        // 10초가 지날 시 자동으로 저장된다.
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 15) {
-            do {
-                try managedObjectContext.save()
-            } catch {
-                fatalError()
+        // 데이터 추가시 undoManager에 추가된 데이터를 등록해놓는다.
+        // 되돌릴시 데이터가 삭제된다.
+        undoManager.registerUndo(withTarget: managedObjectContext) { context in
+            if context.insertedObjects.count != 0 {
+                let changedValue = context.insertedObjects
+                
+                if changedValue.count == 1 {
+                    context.delete(changedValue.first!)
+                }
             }
+        }
+        
+        do {
+            try managedObjectContext.save()
+        } catch {
+            fatalError()
         }
         
         isPresented.toggle()
@@ -109,5 +120,5 @@ struct AddMovieView: View {
 }
 
 #Preview {
-    AddMovieView(isPresented: .constant(true))
+    AddMovieView(isPresented: .constant(true), undoManager: UndoManager())
 }
