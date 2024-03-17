@@ -16,6 +16,8 @@ struct ContentView: View {
     var movies: FetchedResults<Movie>
     
     @State var isAddMovieViewPresented: Bool = false
+    @State private var isUndoAlertPresented: Bool = false
+    @State private var isResetAlertPresented: Bool = false
     
     
     var body: some View {
@@ -37,7 +39,9 @@ struct ContentView: View {
             .navigationTitle("Movie List")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: addButton) {
+                    Button {
+                        isAddMovieViewPresented.toggle()
+                    } label: {
                         Image(systemName: "plus")
                     }
                 }
@@ -45,16 +49,31 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     EditButton()
                 }
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isResetAlertPresented.toggle()
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise.circle")
+                    }
+                }
             }
             .sheet(isPresented: $isAddMovieViewPresented) {
                 AddMovieView(isPresented: $isAddMovieViewPresented)
                     .environment(\.managedObjectContext, managedObjectContext)
             }
         }
-    }
-    
-    func addButton() {
-        isAddMovieViewPresented.toggle()
+        .onShakeGesture {
+            isUndoAlertPresented.toggle()
+        }
+        .alert("되돌리시겠습니까?", isPresented: $isUndoAlertPresented) {
+            Button("취소", role: .cancel, action: { isUndoAlertPresented.toggle() })
+            Button("되돌리기", role: ButtonRole.destructive, action: undoContext)
+        }
+        .alert("리셋하시겠습니까?", isPresented: $isResetAlertPresented) {
+            Button("취소", role: .cancel, action: { isResetAlertPresented.toggle() })
+            Button("리셋하기", role: .destructive, action: resetContext)
+        }
     }
 }
 
@@ -82,7 +101,9 @@ extension ContentView {
             let movie = movies[index]
             managedObjectContext.delete(movie)
             
-            saveContext()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+                saveContext()
+            }
         }
     }
     
@@ -92,5 +113,47 @@ extension ContentView {
         } catch {
             print("Error saving Managed Object Context : \(error.localizedDescription)")
         }
+    }
+    
+    private func undoContext() {
+        let undoManager = UndoManager()
+        managedObjectContext.undoManager = undoManager
+        
+        // 삭제되었을시 다시 insert, insert 된 것을 되돌려 삭제하기
+        undoManager.registerUndo(withTarget: managedObjectContext) { context in
+            if let changedValue = context.insertedObjects.first {
+                context.delete(changedValue)
+            }
+            
+            if !context.deletedObjects.isEmpty {
+                var deletedMovies = context.deletedObjects
+                
+                if deletedMovies.count == 1 {
+                    context.insert(context.deletedObjects.first!)
+                } else {
+                    for movie in deletedMovies {
+                        context.insert(movie)
+                    }
+                }
+            }
+        }
+        
+        managedObjectContext.undo()
+        
+        saveContext()
+    }
+    
+    private func resetContext() {
+        saveContext()
+        
+        for movie in movies {
+            managedObjectContext.delete(movie)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+            saveContext()
+            print("Hello~")
+        }
+        
     }
 }

@@ -95,10 +95,13 @@ struct AddMovieView: View {
         movie.genre = genre
         movie.releaseDate = releaseDate
         
-        do {
-            try managedObjectContext.save()
-        } catch {
-            fatalError()
+        // 10초가 지날 시 자동으로 저장된다.
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 15) {
+            do {
+                try managedObjectContext.save()
+            } catch {
+                fatalError()
+            }
         }
         
         isPresented.toggle()

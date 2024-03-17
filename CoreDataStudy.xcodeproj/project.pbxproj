@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2CAFE1682BA6B38700389793 /* ShakeGestureViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CAFE1672BA6B38700389793 /* ShakeGestureViewModifier.swift */; };
 		2CF0BED52BA56A3E0061C532 /* CoreDataStudyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF0BED42BA56A3E0061C532 /* CoreDataStudyApp.swift */; };
 		2CF0BED72BA56A3E0061C532 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF0BED62BA56A3E0061C532 /* ContentView.swift */; };
 		2CF0BED92BA56A3F0061C532 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2CF0BED82BA56A3F0061C532 /* Assets.xcassets */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2CAFE1672BA6B38700389793 /* ShakeGestureViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeGestureViewModifier.swift; sourceTree = "<group>"; };
 		2CF0BED12BA56A3E0061C532 /* CoreDataStudy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreDataStudy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2CF0BED42BA56A3E0061C532 /* CoreDataStudyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStudyApp.swift; sourceTree = "<group>"; };
 		2CF0BED62BA56A3E0061C532 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 				2CF0BEE52BA56AE00061C532 /* PersistentController.swift */,
 				2CF0BF062BA5829E0061C532 /* AddMovieView.swift */,
 				2CF0BF082BA58B680061C532 /* MovieDetailView.swift */,
+				2CAFE1672BA6B38700389793 /* ShakeGestureViewModifier.swift */,
 			);
 			path = CoreDataStudy;
 			sourceTree = "<group>";
@@ -153,6 +156,7 @@
 				2CF0BED72BA56A3E0061C532 /* ContentView.swift in Sources */,
 				2CF0BED52BA56A3E0061C532 /* CoreDataStudyApp.swift in Sources */,
 				2CF0BEE62BA56AE00061C532 /* PersistentController.swift in Sources */,
+				2CAFE1682BA6B38700389793 /* ShakeGestureViewModifier.swift in Sources */,
 				2CF0BEE42BA56A5A0061C532 /* Model.xcdatamodeld in Sources */,
 				2CF0BF072BA5829E0061C532 /* AddMovieView.swift in Sources */,
 			);
